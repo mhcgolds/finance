@@ -1,0 +1,17 @@
+{
+  "name": "credit-card-tracker",
+  "version": "1.0.0",
+  "description": "Credit card entry tracker with CSV import",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "chart.js": "^4.5.1",
+    "dotenv": "^17.3.1",
+    "pg": "^8.13.3"
+  },
+  "devDependencies": {
+    "electron": "^29.1.0"
+  }
+}

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' file:; script-src 'self' file:; style-src 'self' 'unsafe-inline'">
+  <title>Credit Card Tracker</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+
+    <!-- SHARED HEADER -->
+    <header class="app-header">
+      <h1>Credit Card Tracker</h1>
+    </header>
+
+    <!-- SCREEN: ENTRIES -->
+    <div id="entries-screen" class="screen">
+
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label for="filter-period">Period</label>
+          <select id="filter-period">
+            <option value="">All</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-category">Category</label>
+          <select id="filter-category">
+            <option value="">All categories</option>
+          </select>
+        </div>
+        <div class="filter-group filter-group-desc">
+          <label for="filter-description">Description</label>
+          <input type="text" id="filter-description" class="filter-input" placeholder="Search…" />
+        </div>
+        <div class="filter-group">
+          <button id="btn-clear-filters" class="btn btn-secondary">Clear Filters</button>
+        </div>
+      </div>
+
+      <div class="grid-wrapper">
+        <table id="entries-table">
+          <thead>
+            <tr>
+              <th class="col-date sortable" data-col="date">
+                Date <span class="sort-icon">↕</span>
+              </th>
+              <th class="col-description sortable" data-col="description">
+                Description <span class="sort-icon">↕</span>
+              </th>
+              <th class="col-amount sortable" data-col="amount">
+                Amount <span class="sort-icon">↕</span>
+              </th>
+              <th class="col-category sortable" data-col="category">
+                Category <span class="sort-icon">↕</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody id="entries-tbody">
+            <tr id="empty-row">
+              <td colspan="4" class="empty-msg">No entries. Import a CSV file to get started.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <footer class="app-footer">
+        <div class="footer-total">
+          Total: <strong id="footer-total">$0.00</strong>
+          <span class="footer-count" id="footer-count">(0 entries)</span>
+        </div>
+        <div class="footer-actions">
+          <button id="btn-save-categories" class="btn btn-success">Save Categories</button>
+        </div>
+      </footer>
+
+    </div>
+
+    <!-- SCREEN: MONTHLY GRAPH -->
+    <div id="graph-screen" class="screen screen-hidden">
+      <div class="graph-toolbar">
+        <label for="chart-type-select">Chart type</label>
+        <select id="chart-type-select">
+          <option value="line">Line</option>
+          <option value="bar">Stacked Bar</option>
+        </select>
+      </div>
+      <div class="graph-body">
+        <div class="graph-canvas-wrap">
+          <canvas id="monthly-chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN: MONTHLY SUMMARY -->
+    <div id="summary-screen" class="screen screen-hidden">
+
+      <div class="summary-toolbar">
+        <label for="summary-month-select">Month</label>
+        <select id="summary-month-select">
+          <option value="">All Months</option>
+        </select>
+      </div>
+
+      <div class="summary-body" id="summary-body"></div>
+
+    </div>
+
+  </div>
+
+  <!-- CATEGORIES MANAGEMENT OVERLAY -->
+  <div id="cat-mgmt-overlay" class="modal-overlay hidden">
+    <div class="modal modal-cat-mgmt">
+
+      <div class="cat-mgmt-header">
+        <h2>Manage Categories</h2>
+        <button id="cat-mgmt-close" class="btn-icon btn-icon-close" title="Close">&#x2715;</button>
+      </div>
+
+      <!-- Add / Edit form -->
+      <div class="cat-form-section">
+        <div class="cat-form-title" id="cat-form-title">Add Category</div>
+        <div class="cat-form-row">
+          <input type="text" id="cat-form-name" class="cat-form-name-input" placeholder="Category name" />
+          <label class="cat-form-color-wrap">
+            Color
+            <input type="color" id="cat-form-color" value="#6b7280" />
+          </label>
+          <label class="cat-form-default-wrap">
+            <input type="checkbox" id="cat-form-is-default" />
+            Default for imports
+          </label>
+          <div class="cat-form-btns">
+            <button id="cat-form-cancel" class="btn btn-secondary" style="display:none">Cancel</button>
+            <button id="cat-form-save" class="btn btn-primary">Add</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category list -->
+      <div class="cat-list-wrap">
+        <table class="cat-list-table">
+          <thead>
+            <tr>
+              <th class="col-cat-color">Color</th>
+              <th>Name</th>
+              <th class="col-cat-default">Default</th>
+              <th class="col-cat-actions"></th>
+            </tr>
+          </thead>
+          <tbody id="cat-list-tbody"></tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- IMPORT PREVIEW MODAL -->
+  <div id="import-modal-overlay" class="modal-overlay hidden">
+    <div class="modal modal-wide">
+      <h2>Import CSV</h2>
+      <p class="import-info">Map your CSV columns to the required fields.</p>
+      <div class="column-mapping">
+        <div class="mapping-row">
+          <label>Date column:</label>
+          <select id="map-date"></select>
+        </div>
+        <div class="mapping-row">
+          <label>Description column:</label>
+          <select id="map-description"></select>
+        </div>
+        <div class="mapping-row">
+          <label>Amount column:</label>
+          <select id="map-amount"></select>
+        </div>
+      </div>
+      <div class="import-preview-wrap">
+        <p class="preview-label">Preview (first 5 rows):</p>
+        <table id="preview-table" class="preview-table">
+          <thead><tr id="preview-thead"></tr></thead>
+          <tbody id="preview-tbody"></tbody>
+        </table>
+      </div>
+      <div class="modal-actions">
+        <button id="import-cancel" class="btn btn-secondary">Cancel</button>
+        <button id="import-confirm" class="btn btn-primary">Import</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="../node_modules/chart.js/dist/chart.umd.js"></script>
+  <script src="renderer.js"></script>
+</body>
+</html>
